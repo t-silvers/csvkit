@@ -1,0 +1,20 @@
+name: Release on Tag
+on: push
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Create release from (latest) tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(gh api repos/:owner/:repo/tags --jq '.[0].name')
+          if ! gh release view "$TAG" > /dev/null 2>&1; then
+            VER="v$TAG"
+            gh release create "$TAG" --title "$VER" --notes-from-tag
+          fi
